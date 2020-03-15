@@ -1,4 +1,4 @@
-package googleauthidtokenverifier
+package jwsverifier
 
 import (
 	"crypto/rand"
