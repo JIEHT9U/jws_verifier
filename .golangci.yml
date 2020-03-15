@@ -1,0 +1,53 @@
+run:
+  concurrency: 2
+  issues-exit-code: 1
+  tests: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 1.13
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/jieht9u/google-auth-id-token-verifier
+  gocyclo:
+    min-complexity: 10
+  maligned:
+    suggest-new: true
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 3
+    min-occurrences: 2
+  depguard:
+    list-type: blacklist
+    include-go-root: false
+  misspell:
+    locale: US
+  lll:
+    line-length: 120
+    tab-width: 1
+  unused:
+    check-exported: false
+  unparam:
+    check-exported: true
+  nakedret:
+    max-func-lines: 30
+  gocritic:
+
+linters:
+  enable-all: true
+  disable:
+    - gomnd
+    - wsl
+  fast: true
