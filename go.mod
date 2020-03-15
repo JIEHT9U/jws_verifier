@@ -1,4 +1,4 @@
-module github.com/jieht9u/jws_verifier
+module github.com/jieht9u/jwsverifier
 
 go 1.14
 
