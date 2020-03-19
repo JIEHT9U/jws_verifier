@@ -1,11 +1,11 @@
-package jwsverifier
+package error
 
 import "errors"
 
 var (
 	ErrInvalidToken = errors.New("Invalid token")
 
-	ErrPublicKeyNotFound = errors.New("No public key found for given kid")
+	ErrPublicKeyNotFound = errors.New("No public JWK found for given kid")
 
 	ErrWrongSignature = errors.New("Wrong token signature")
 

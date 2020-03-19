@@ -17,7 +17,7 @@ type Certs struct {
 	Expiry time.Time
 }
 
-type key struct {
+type JWK struct {
 	Kty string `json:"kty"`
 	Alg string `json:"alg"`
 	Use string `json:"use"`
@@ -26,8 +26,8 @@ type key struct {
 	E   string `json:"e"`
 }
 
-type response struct {
-	Keys []key `json:"keys"`
+type JWKS struct {
+	Keys []JWK `json:"keys"`
 }
 
 func (v *Verifier) checkFederatedSignonCerts() error {
@@ -62,15 +62,15 @@ func (c Certs) isExpired() bool {
 	return true
 }
 
-func getNewCerts(googleOAuth2FederatedSignorCertsURL string) (*response, int64, error) {
+func getNewCerts(googleOAuth2FederatedSignorCertsURL string) (*JWKS, int64, error) {
 	var resp, err = http.Get(googleOAuth2FederatedSignorCertsURL)
 	if err != nil {
 		return nil, 0, fmt.Errorf("error get federated signor certs err_msg=%w", err)
 	}
 
-	var res response
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, 0, fmt.Errorf("error response decode err_msg=%w", err)
+	var jwks JWKS
+	if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
+		return nil, 0, fmt.Errorf("error JWKS decode err_msg=%w", err)
 	}
 
 	cacheAge, err := getCacheAge(resp.Header.Get("cache-control"))
@@ -78,7 +78,7 @@ func getNewCerts(googleOAuth2FederatedSignorCertsURL string) (*response, int64, 
 		return nil, 0, fmt.Errorf("error get cache age err_msg=%w", err)
 	}
 
-	return &res, cacheAge, nil
+	return &jwks, cacheAge, nil
 }
 
 func getCacheAge(cacheControl string) (int64, error) {
@@ -94,7 +94,7 @@ func getCacheAge(cacheControl string) (int64, error) {
 	return cacheAge, nil
 }
 
-func encodingPublicKeys(keys []key) (_ map[string]*rsa.PublicKey, err error) {
+func encodingPublicKeys(keys []JWK) (_ map[string]*rsa.PublicKey, err error) {
 	var result = make(map[string]*rsa.PublicKey)
 	for _, key := range keys {
 		if key.Use == "sig" && key.Kty == "RSA" {
@@ -104,12 +104,12 @@ func encodingPublicKeys(keys []key) (_ map[string]*rsa.PublicKey, err error) {
 		}
 	}
 	if len(result) == 0 {
-		return nil, fmt.Errorf("error encoding public key")
+		return nil, fmt.Errorf("error encoding public JWK")
 	}
 	return result, nil
 }
 
-func encodingKey(k key) (*rsa.PublicKey, error) {
+func encodingKey(k JWK) (*rsa.PublicKey, error) {
 	n, err := base64.RawURLEncoding.DecodeString(k.N)
 	if err != nil {
 		return nil, err

@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	errors2 "github.com/jieht9u/jwsverifier/error"
+	"github.com/jieht9u/jwsverifier/jws"
 )
 
 // verifySignedJWTWithCerts is golang port of OAuth2Client.prototype.verifySignedJwtWithCerts
@@ -21,29 +24,29 @@ func (v *Verifier) verifySignedJWTWithCerts(token string, allowedAuds []string) 
 	if err != nil {
 		return err
 	}
-	if err := Verify(token, key); err != nil {
-		return ErrWrongSignature
+	if err := jws.Verify(token, key); err != nil {
+		return errors2.ErrWrongSignature
 	}
 	if claimSet.Iat < 1 {
-		return ErrNoIssueTimeInToken
+		return errors2.ErrNoIssueTimeInToken
 	}
 	if claimSet.Exp < 1 {
-		return ErrNoExpirationTimeInToken
+		return errors2.ErrNoExpirationTimeInToken
 	}
 	var now = time.Now()
 	if claimSet.Exp > now.Unix()+int64(v.maxTokenLifetime.Seconds()) {
-		return ErrExpirationTimeTooFarInFuture
+		return errors2.ErrExpirationTimeTooFarInFuture
 	}
 
 	earliest := claimSet.Iat - int64(v.clockSkew.Seconds())
 	latest := claimSet.Exp + int64(v.clockSkew.Seconds())
 
 	if now.Unix() < earliest {
-		return ErrTokenUsedTooEarly
+		return errors2.ErrTokenUsedTooEarly
 	}
 
 	if now.Unix() > latest {
-		return ErrTokenUsedTooLate
+		return errors2.ErrTokenUsedTooLate
 	}
 
 	found := false
@@ -71,7 +74,7 @@ func (v *Verifier) verifySignedJWTWithCerts(token string, allowedAuds []string) 
 	return nil
 }
 
-func parseJWT(token string) (*Header, *ClaimSet, error) {
+func parseJWT(token string) (*jws.Header, *jws.ClaimSet, error) {
 	s := strings.Split(token, ".")
 	if len(s) != 3 {
 		return nil, nil, errors.New("Invalid token received")
@@ -80,13 +83,13 @@ func parseJWT(token string) (*Header, *ClaimSet, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	var header Header
+	var header jws.Header
 	err = json.NewDecoder(bytes.NewBuffer(decodedHeader)).Decode(&header)
 	if err != nil {
 		return nil, nil, err
 	}
-	var claimSet ClaimSet
-	if err := Decode(token, &claimSet); err != nil {
+	var claimSet jws.ClaimSet
+	if err := jws.Decode(token, &claimSet); err != nil {
 		return nil, nil, err
 	}
 	return &header, &claimSet, nil

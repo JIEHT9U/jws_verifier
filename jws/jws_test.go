@@ -1,4 +1,4 @@
-package jwsverifier
+package jws
 
 import (
 	"crypto/rand"
@@ -37,6 +37,6 @@ func TestSignAndVerify(t *testing.T) {
 func TestVerifyFailsOnMalformedClaim(t *testing.T) {
 	err := Verify("abc.def", nil)
 	if err == nil {
-		t.Error("got no errors; want improperly formed JWT not to be verified")
+		t.Error("got no error; want improperly formed JWT not to be verified")
 	}
 }

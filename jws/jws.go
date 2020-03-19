@@ -1,4 +1,4 @@
-package jwsverifier
+package jws
 
 import (
 	"bytes"
@@ -13,6 +13,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	e "github.com/jieht9u/jwsverifier/error"
 )
 
 // ClaimSet contains information about the JWT signature including the
@@ -88,7 +90,7 @@ type Header struct {
 	// Represents the token type.
 	Typ string `json:"typ"`
 
-	// The optional hint of which key is being used.
+	// The optional hint of which JWK is being used.
 	KeyID string `json:"kid,omitempty"`
 }
 
@@ -122,7 +124,7 @@ func EncodeWithSigner(header *Header, c *ClaimSet, sg Signer) (string, error) {
 }
 
 // Encode encodes a signed JWS with provided header and claim set.
-// This invokes EncodeWithSigner using crypto/rsa.SignPKCS1v15 with the given RSA private key.
+// This invokes EncodeWithSigner using crypto/rsa.SignPKCS1v15 with the given RSA private JWK.
 func Encode(header *Header, c *ClaimSet, key *rsa.PrivateKey) (string, error) {
 	sg := func(data []byte) (sig []byte, err error) {
 		h := sha256.New()
@@ -132,8 +134,8 @@ func Encode(header *Header, c *ClaimSet, key *rsa.PrivateKey) (string, error) {
 	return EncodeWithSigner(header, c, sg)
 }
 
-// Verify tests whether the provided JWT token's signature was produced by the private key
-// associated with the supplied public key.
+// Verify tests whether the provided JWT token's signature was produced by the private JWK
+// associated with the supplied public JWK.
 func Verify(token string, key *rsa.PublicKey) error {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
@@ -159,7 +161,7 @@ func Decode(payload string, claimSet interface{}) error {
 	// decode returned id token to get expiry
 	var s = strings.Split(payload, ".")
 	if len(s) != 3 {
-		return ErrInvalidToken
+		return e.ErrInvalidToken
 	}
 	decoded, err := base64.RawURLEncoding.DecodeString(s[1])
 	if err != nil {

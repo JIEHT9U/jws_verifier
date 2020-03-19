@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	errors2 "github.com/jieht9u/jwsverifier/error"
 )
 
 type Verifier struct {
@@ -39,12 +41,12 @@ func (c *certs) get() (certs Certs, exist bool) {
 func (c *certs) getKey(keyID string) (*rsa.PublicKey, error) {
 	certs, exist := c.get()
 	if !exist {
-		return nil, ErrPublicKeyNotFound
+		return nil, errors2.ErrPublicKeyNotFound
 	}
 	if key, found := certs.Keys[keyID]; found {
 		return key, nil
 	}
-	return nil, ErrPublicKeyNotFound
+	return nil, errors2.ErrPublicKeyNotFound
 }
 
 func New() *Verifier {
